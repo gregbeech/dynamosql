@@ -8,6 +8,7 @@ import cats.implicits._
 import dynamosql.model._
 import dynamosql.model.Value._
 import dynamosql.parser.QueryParser
+import dynamosql.request.QueryRequestBuilder
 import shapeless.ProductArgs
 import shapeless.{::, HList, HNil, Lazy}
 
@@ -78,7 +79,7 @@ object Param {
   )
 }
 
-case class ParameterisedQuery(query: Query, args: List[Value])
+case class ParameterisedQuery(query: Query, args: Map[String, Value])
 
 final class DynamoInterpolator(sc: StringContext) {
   private def mkQuery[A](a: A)(implicit ev: Param[A]): ParameterisedQuery = {
@@ -89,7 +90,9 @@ final class DynamoInterpolator(sc: StringContext) {
     println(sql)
     println(ev.write.toList(a))
     new QueryParser(sql).query.run() match {
-      case Success(query) => ParameterisedQuery(query, ev.write.toList(a))
+      case Success(query) => ParameterisedQuery(query, ev.write.toList(a).zipWithIndex.map {
+        case (v, n) => s":$n" -> v
+      }.toMap)
       case Failure(error) => throw error
     }
 
@@ -117,8 +120,11 @@ object Application {
     val id = WidgetId("1234")
     val sk = "details"
     val limit = 10
-    val res = query"SELECT * FROM Entities WHERE Id = $id AND SK[0].X = $sk LIMIT $limit"
-    println(res)
+    val pq = query"SELECT * FROM Entities WHERE Id = $id AND SK[0].X = $sk LIMIT $limit"
+    println(pq)
+
+    val qr = QueryRequestBuilder.build(pq)
+    println(qr)
 
 //    SELECT [* | attr,... | COUNT(*)]
 //    FROM tableName [INDEX indexName | WITH CONSISTENT_READ]

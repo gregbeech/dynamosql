@@ -20,7 +20,7 @@ class QueryParser(val input: ParserInput) extends Parser {
   def attrScannable = rule { attrS | arg }
   def attrValue = rule { attrS | attrN | attrBOOL | arg }
 
-  def arg = rule { ":" ~ capture(oneOrMore(CharPredicate.AlphaNum)) ~> Value.Arg.apply _ }
+  def arg = rule { capture(":" ~ oneOrMore(CharPredicate.AlphaNum)) ~> Value.Arg.apply _ }
 
   def star = rule { str("*") ~> (() => Select.allAttributes) }
   def countStar = rule { str("COUNT(*)") ~> (() => Select.count) }
