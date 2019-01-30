@@ -8,7 +8,7 @@ import cats.implicits._
 import dynamosql.model._
 import dynamosql.model.Value._
 import dynamosql.parser.QueryParser
-import dynamosql.request.QueryRequestBuilder
+import dynamosql.request._
 import shapeless.ProductArgs
 import shapeless.{::, HList, HNil, Lazy}
 
@@ -95,7 +95,6 @@ final class DynamoInterpolator(sc: StringContext) {
       }.toMap)
       case Failure(error) => throw error
     }
-
   }
 
   object query extends ProductArgs {
@@ -123,7 +122,7 @@ object Application {
     val pq = query"SELECT * FROM Entities WHERE Id = $id AND SK[0].X = $sk LIMIT $limit"
     println(pq)
 
-    val qr = QueryRequestBuilder.build(pq)
+    val qr = pq.toRequest
     println(qr)
 
 //    SELECT [* | attr,... | COUNT(*)]

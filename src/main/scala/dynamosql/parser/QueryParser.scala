@@ -46,12 +46,12 @@ class QueryParser(val input: ParserInput) extends Parser {
   def notExists = rule { str("NOT EXISTS") ~> (() => NotExists) }
 
   def skOp = rule { eq | gt | lt | gte | lte | beginsWith | between }
-  def pkCondition = rule { attrName ~ owsp ~ eq ~> Condition.apply _ }
-  def skCondition = rule { attrName ~ owsp ~ skOp ~> Condition.apply _ }
+  def pkCondition = rule { attrName ~ owsp ~ eq ~> PartitionKeyCondition.apply _ }
+  def skCondition = rule { attrName ~ owsp ~ skOp ~> SortKeyCondition.apply _ }
   def where = rule { "WHERE" ~ wsp ~ pkCondition ~ optional(wsp ~ "AND" ~ wsp ~ skCondition) ~> Where.apply _ }
 
   def filterOp = rule { eq | ne | gt | lt | gte | lte | beginsWith | between | contains | notContains | exists | notExists }
-  def filterCondition = rule { attrName ~ owsp ~ filterOp ~> Condition.apply _ }
+  def filterCondition = rule { attrName ~ owsp ~ filterOp ~> FilterCondition.apply _ }
   def filter = rule { "FILTER" ~ wsp ~ oneOrMore(filterCondition).separatedBy(wsp ~ "AND" ~ wsp) ~> Filter.apply _ }
 
   def query: Rule1[Query] = rule { owsp ~ select ~ wsp ~ from ~ wsp ~ where ~ optional(wsp ~ filter) ~ owsp ~> Query.apply _ }
