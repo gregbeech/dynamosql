@@ -8,3 +8,5 @@ case class Where(pkCondition: AttributeCondition, skCondition: Option[AttributeC
 }
 
 case class Query(select: Select, from: From, where: Where, filter: Option[Condition])
+
+case class ParameterisedQuery(query: Query, args: Map[String, Value])

@@ -1,6 +1,6 @@
 package dynamosql
 
-import dynamosql.model.Value
+import dynamosql.model.{ParameterisedQuery, Value}
 import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, QueryRequest}
 
 package object request {

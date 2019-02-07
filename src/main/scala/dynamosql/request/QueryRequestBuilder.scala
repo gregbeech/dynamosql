@@ -1,7 +1,6 @@
 package dynamosql.request
 
-import dynamosql.ParameterisedQuery
-import dynamosql.model._
+import dynamosql.model.{ParameterisedQuery, _}
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 
 import scala.collection.JavaConverters._
