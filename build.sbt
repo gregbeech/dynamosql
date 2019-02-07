@@ -53,8 +53,10 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.487",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.chuusai" %% "shapeless" % "2.3.3",
   "org.parboiled" %% "parboiled" % "2.1.5",
-  "org.typelevel" %% "cats-core" % "1.5.0"
+  "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
+  "org.typelevel" %% "cats-core" % "1.5.0",
+  "software.amazon.awssdk" % "dynamodb" % "2.4.1"
 )

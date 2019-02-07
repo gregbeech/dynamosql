@@ -41,7 +41,6 @@ class QueryParser(val input: ParserInput) extends Parser {
   def beginsWith = rule { "BEGINS WITH" ~ wsp ~ attrOrdered ~> BeginsWith.apply _ }
   def between = rule { "BETWEEN" ~ wsp ~ attrOrdered ~ wsp ~ "AND" ~ wsp ~ attrOrdered ~> Between.apply _ }
   def contains = rule { "CONTAINS" ~ owsp ~ attrOrdered ~> Contains.apply _ }
-  def notContains = rule { "NOT CONTAINS" ~ owsp ~ attrOrdered ~> NotContains.apply _ }
   def exists = rule { str("EXISTS") ~> (() => Exists) }
   def notExists = rule { str("NOT EXISTS") ~> (() => NotExists) }
 
@@ -50,9 +49,9 @@ class QueryParser(val input: ParserInput) extends Parser {
   def skCondition = rule { attrName ~ owsp ~ skOp ~> SortKeyCondition.apply _ }
   def where = rule { "WHERE" ~ wsp ~ pkCondition ~ optional(wsp ~ "AND" ~ wsp ~ skCondition) ~> Where.apply _ }
 
-  def filterOp = rule { eq | ne | gt | lt | gte | lte | beginsWith | between | contains | notContains | exists | notExists }
+  def filterOp = rule { eq | ne | gt | lt | gte | lte | beginsWith | between | contains | exists | notExists }
   def filterCondition = rule { attrName ~ owsp ~ filterOp ~> FilterCondition.apply _ }
-  def filter = rule { "FILTER" ~ wsp ~ oneOrMore(filterCondition).separatedBy(wsp ~ "AND" ~ wsp) ~> Filter.apply _ }
+  def filter = rule { "FILTER" ~ wsp ~ oneOrMore(filterCondition).separatedBy(wsp ~ "AND" ~ wsp) ~> (xs => Condition.all(xs.toList)) }
 
   def query: Rule1[Query] = rule { owsp ~ select ~ wsp ~ from ~ wsp ~ where ~ optional(wsp ~ filter) ~ owsp ~> Query.apply _ }
 }

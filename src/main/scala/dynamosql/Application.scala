@@ -1,19 +1,23 @@
 package dynamosql
 
+import java.net.URI
 import java.nio.ByteBuffer
 
 import cats._
-import cats.data._
 import cats.implicits._
-import dynamosql.model._
 import dynamosql.model.Value._
+import dynamosql.model._
 import dynamosql.parser.QueryParser
 import dynamosql.request._
-import shapeless.ProductArgs
-import shapeless.{::, HList, HNil, Lazy}
+import shapeless.{::, HList, HNil, ProductArgs}
+import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 
+import scala.compat.java8.FutureConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
-
 
 trait Input[A] {
   def value(a: A): Value
@@ -111,19 +115,36 @@ object syntax extends ToDynamoInterpolator
 object Application {
   import dynamosql.syntax._
 
-  case class WidgetId(get: String)
+  case class CredentialId(get: String)
+  case class RowVersion(get: Int)
 
-  implicit val widgetIdInput: Input[WidgetId] = Input[String].contramap(id => s"Widget#${id.get}")
+  implicit val credentialIdInput: Input[CredentialId] = Input[String].contramap(id => s"Credential#${id.get}")
+  implicit val rowVersionInput: Input[RowVersion] = Input[String].contramap(id => f"Version#${id.get}%07d")
 
   def main(args: Array[String]): Unit = {
-    val id = WidgetId("1234")
-    val sk = "details"
+    val id = CredentialId("6aa39188877008f8e2f576f559efe00f")
+    val sk = RowVersion(0)
     val limit = 10
-    val pq = query"SELECT * FROM Entities WHERE Id = $id AND SK[0].X = $sk LIMIT $limit"
-    println(pq)
+    val query = query"""
+      SELECT *
+      FROM identity.test.Entities
+      WHERE Id = $id AND SK >= $sk
+      FILTER Version = 1 AND GSI2PK CONTAINS 'fc4912035cf0c5eb'
+      LIMIT $limit
+    """
+    println(query)
 
-    val qr = pq.toRequest
-    println(qr)
+    val request = query.toRequest
+    println(request)
+
+    val client = DynamoDbAsyncClient.builder
+      .region(Region.of("local"))
+      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("local", "local")))
+      .endpointOverride(new URI("http://localhost:8000"))
+      .build
+    val result = Await.result(client.query(request).toScala, Duration.Inf)
+    println(result)
+
 
 //    SELECT [* | attr,... | COUNT(*)]
 //    FROM tableName [INDEX indexName | WITH CONSISTENT_READ]
@@ -132,24 +153,24 @@ object Application {
 //    ORDER {ASC | DESC}
 //    LIMIT $limit
 
-    println(new QueryParser("-123.456E10").attrN.run())
-
-    val qp1 = new QueryParser("SELECT foo, bar, baz").select.run()
-    val qp2 = new QueryParser("FROM my.table INDEX my.index").from.run()
-    val qp3 = new QueryParser("WHERE k1 = 's1' AND k2 = -123.456E10").where.run()
-    val qp4 = new QueryParser("FILTER k1 <> true AND k2 BETWEEN 's2' AND 's3' AND k3 BEGINS WITH 123.5").filter.run()
-    println(qp1)
-    println(qp2)
-    println(qp3)
-    println(qp4)
-
-    val qp = new QueryParser(
-      """
-        SELECT foo, bar, baz
-        FROM my.table INDEX my.index
-        WHERE k1 = 's1' AND k2 BEGINS WITH 'foo'
-        FILTER k3 NOT CONTAINS 'bar'
-      """).query.run()
-    println(qp)
+//    println(new QueryParser("-123.456E10").attrN.run())
+//
+//    val qp1 = new QueryParser("SELECT foo, bar, baz").select.run()
+//    val qp2 = new QueryParser("FROM my.table INDEX my.index").from.run()
+//    val qp3 = new QueryParser("WHERE k1 = 's1' AND k2 = -123.456E10").where.run()
+//    val qp4 = new QueryParser("FILTER k1 <> true AND k2 BETWEEN 's2' AND 's3' AND k3 BEGINS WITH 123.5").filter.run()
+//    println(qp1)
+//    println(qp2)
+//    println(qp3)
+//    println(qp4)
+//
+//    val qp = new QueryParser(
+//      """
+//        SELECT foo, bar, baz
+//        FROM my.table INDEX my.index
+//        WHERE k1 = 's1' AND k2 BEGINS WITH 'foo'
+//        FILTER k3 NOT CONTAINS 'bar'
+//      """).query.run()
+//    println(qp)
   }
 }
