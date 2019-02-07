@@ -1,12 +1,7 @@
 package dynamosql.model
 
-case class Where(pkCondition: AttributeCondition, skCondition: Option[AttributeCondition]) {
-  def toCondition: Condition = skCondition match {
-    case Some(cond) => AndCondition(pkCondition, cond)
-    case None => pkCondition
-  }
-}
+case class Table(name: String, index: Option[String] = None)
 
-case class Query(select: Select, from: From, where: Where, filter: Option[Condition])
+case class Query(projection: Projection, table: Table, keyCondition: KeyCondition, filterCondition: Option[Condition])
 
 case class ParameterisedQuery(query: Query, args: Map[String, Value])

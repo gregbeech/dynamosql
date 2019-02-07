@@ -3,7 +3,6 @@ package dynamosql
 import java.net.URI
 
 import cats.implicits._
-import dynamosql.request._
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
 
 import scala.compat.java8.FutureConverters._
@@ -12,6 +11,7 @@ import scala.concurrent.duration.Duration
 
 object Application {
   import dynamosql.syntax._
+  import dynamosql.awssdk.v2.syntax._
 
   case class CredentialId(get: String)
   case class RowVersion(get: Int)
@@ -27,7 +27,7 @@ object Application {
       SELECT *
       FROM identity.test.Entities
       WHERE Id = $id AND SK >= $sk
-      FILTER Version = 1 AND GSI2PK CONTAINS 'fc4912035cf0c5eb'
+      FILTER CreatedAt > Version AND GSI2PK CONTAINS 'fc4912035cf0c5eb'
       LIMIT $limit
     """
 

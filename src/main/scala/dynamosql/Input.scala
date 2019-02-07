@@ -16,7 +16,7 @@ object Input {
     override def contramap[A, B](fa: Input[A])(f: B => A): Input[B] = b => fa.value(f(b))
   }
 
-  implicit val booleanInput: Input[Boolean] = a => BOOL(a)
+  implicit val booleanInput: Input[Boolean] = a => Bool(a)
   implicit val byteBufferInput: Input[ByteBuffer] = a => Binary(a)
   implicit val byteArrayInput: Input[Array[Byte]] = byteBufferInput.contramap(ByteBuffer.wrap)
   implicit val bigDecimalInput: Input[BigDecimal] = a => N(a.toString)

@@ -1,4 +1,4 @@
-package dynamosql.request
+package dynamosql.awssdk.v2
 
 import dynamosql.model.Value
 import dynamosql.model.Value._
@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 object AttributeValueBuilder {
   def build(value: Value, args: Map[String, Value] = Map.empty): AttributeValue = value match {
     case Binary(b) => AttributeValue.builder.b(SdkBytes.fromByteBuffer(b)).build
-    case BOOL(bool) => AttributeValue.builder.bool(bool).build
+    case Bool(bool) => AttributeValue.builder.bool(bool).build
     case N(n) => AttributeValue.builder.n(n).build
     case S(s) => AttributeValue.builder.s(s).build
     case SS(ss) => AttributeValue.builder.ss(ss.asJavaCollection).build

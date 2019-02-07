@@ -1,5 +1,6 @@
-package dynamosql.request
+package dynamosql.awssdk.v2
 
+import dynamosql.awssdk.v2.syntax._
 import dynamosql.model.{ParameterisedQuery, _}
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 
@@ -9,10 +10,10 @@ object QueryRequestBuilder {
   def build(pq: ParameterisedQuery): QueryRequest = {
     implicit val context: SubstitutionContext = new SubstitutionContext()
 
-    val keyCondition = ExpressionVisitor.visit(pq.query.where.toCondition)
-    val filterCondition = pq.query.filter.map(ExpressionVisitor.visit)
+    val keyCondition = ExpressionVisitor.visit(pq.query.keyCondition)
+    val filterCondition = pq.query.filterCondition.map(ExpressionVisitor.visit)
 
-    builder(pq.query.from)
+    builder(pq.query.table)
       .keyConditionExpression(keyCondition)
       .filterExpression(filterCondition.orNull)
       .expressionAttributeNames(context.nameMap.asJava)
@@ -20,8 +21,8 @@ object QueryRequestBuilder {
       .build()
   }
 
-  private def builder(from: From): QueryRequest.Builder = from match {
-    case Table(tableName) => QueryRequest.builder.tableName(tableName)
-    case Index(indexName, tableName) => QueryRequest.builder.tableName(tableName).indexName(indexName)
+  private def builder(table: Table): QueryRequest.Builder = table match {
+    case Table(name, Some(index)) => QueryRequest.builder.tableName(name).indexName(index)
+    case Table(name, None) => QueryRequest.builder.tableName(name)
   }
 }

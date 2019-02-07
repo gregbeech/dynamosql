@@ -6,7 +6,7 @@ final class Param[A](val write: Write[A])
 
 object Param {
   implicit val ParamHNil: Param[HNil] = new Param[HNil](
-    Write.emptyProduct
+    Write.empty
   )
 
   implicit def ParamHList[H, T <: HList](implicit ph: Param[H], pt: Param[T]): Param[H :: T] = new Param[H :: T](

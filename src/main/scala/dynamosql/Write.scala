@@ -11,5 +11,5 @@ object Write {
     { case h :: t => H.toList(h) ++ T.toList(t) }
   )
 
-  def emptyProduct: Write[HNil] = new Write[HNil](Nil, _ => Nil)
+  def empty: Write[HNil] = new Write[HNil](Nil, _ => Nil)
 }
