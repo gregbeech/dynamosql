@@ -1,6 +1,7 @@
 package dynamosql.awssdk.v2
 
 import dynamosql.awssdk.v2.syntax._
+import dynamosql.expr.{ExpressionVisitor, SubstitutionContext}
 import dynamosql.model.{ParameterisedQuery, _}
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 

@@ -1,4 +1,4 @@
-package dynamosql.awssdk.v2
+package dynamosql.expr
 
 import dynamosql.model._
 
@@ -39,7 +39,7 @@ object ExpressionVisitor {
 
   private def visit(segment: Segment)(implicit context: SubstitutionContext): String = segment match {
     case Name(name) => context.name(name)
-    case Elem(index) => s"[$index]"
+    case Index(index) => s"[$index]"
   }
 
   private def visit(value: Value)(implicit context: SubstitutionContext): String = context.value(value)

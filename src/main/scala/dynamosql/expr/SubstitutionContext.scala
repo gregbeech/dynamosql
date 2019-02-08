@@ -1,4 +1,4 @@
-package dynamosql.awssdk.v2
+package dynamosql.expr
 
 import dynamosql.model.Value
 

@@ -3,17 +3,21 @@ package dynamosql.parser
 import dynamosql.model._
 import org.parboiled2._
 
-class QueryParser(val input: ParserInput) extends Parser {
+trait WhitespaceRules { this: Parser =>
   def wsp = rule { oneOrMore(anyOf(" \t\r\n")) }
   def owsp = rule { zeroOrMore(anyOf(" \t\r\n")) }
+}
 
-  def name = rule { capture(oneOrMore(noneOf(", .[]"))) ~> Name.apply _ }
-  def mapSegment = rule { "." ~ name }
-  def listSegment = rule { "[" ~ capture(oneOrMore(CharPredicate.Digit)) ~ "]" ~> (s => Elem(s.toInt)) }
-  def segment = rule { mapSegment | listSegment }
+trait PathRules extends WhitespaceRules { this: Parser =>
+  def name = rule { capture((1 to 255).times(noneOf(":#.[], \t\r\n"))) ~> Name.apply _ }
+  def nameSegment = rule { "." ~ name }
+  def indexSegment = rule { "[" ~ capture(oneOrMore(CharPredicate.Digit)) ~ "]" ~> (s => Index(s.toInt)) }
+  def segment = rule { nameSegment | indexSegment }
   def path = rule { name ~ zeroOrMore(segment) ~> ((n, ss) => Path(n, ss.toList)) }
   def pathList = rule { oneOrMore(path).separatedBy(owsp ~ "," ~ owsp) ~> Projection.specificAttributes _ }
+}
 
+class QueryParser(val input: ParserInput) extends Parser with PathRules {
   def BOOL = rule { capture("true" | "false") ~> (s => Value.Bool(s.toBoolean)) }
   def N = rule { capture(optional("-") ~ oneOrMore(CharPredicate.Digit) ~ optional("." ~ oneOrMore(CharPredicate.Digit)) ~ optional("E" ~ oneOrMore(CharPredicate.Digit))) ~> Value.N.apply _ }
   def S = rule { "'" ~ capture(oneOrMore(noneOf("'"))) ~ "'" ~> Value.S.apply _ }
@@ -22,9 +26,9 @@ class QueryParser(val input: ParserInput) extends Parser {
   def linearValue = rule { S | arg }
 
   def arg = rule { capture(":" ~ oneOrMore(CharPredicate.AlphaNum)) ~> Value.Arg.apply _ }
-  def operand: Rule1[Operand] = rule { arg | value | path }
-  def orderedOperand: Rule1[Operand] = rule { arg | orderedValue | path }
-  def linearOperand: Rule1[Operand] = rule { arg | linearValue | path }
+  def operand = rule { arg | value | path }
+  def orderedOperand = rule { arg | orderedValue | path }
+  def linearOperand = rule { arg | linearValue | path }
 
   def eq = rule { "=" ~ owsp ~ operand ~> Eq.apply _ }
   def ne = rule { ("<>" | "!=") ~ owsp ~ operand ~> Ne.apply _ }
@@ -43,9 +47,9 @@ class QueryParser(val input: ParserInput) extends Parser {
   def fields = rule { star | count | pathList }
   def select = rule { "SELECT" ~ wsp ~ fields }
 
-  def tableOrIndexName: Rule1[String] = rule { capture((3 to 255).times(CharPredicate.AlphaNum | anyOf("_-."))) }
-  def index: Rule1[String] = rule { "INDEX" ~ wsp ~ tableOrIndexName }
-  def from: Rule1[Table] = rule { "FROM" ~ wsp ~ tableOrIndexName ~ optional(wsp ~ index) ~> Table.apply _ }
+  def tableOrIndexName = rule { capture((3 to 255).times(CharPredicate.AlphaNum | anyOf("_-."))) }
+  def index = rule { "INDEX" ~ wsp ~ tableOrIndexName }
+  def from = rule { "FROM" ~ wsp ~ tableOrIndexName ~ optional(wsp ~ index) ~> Table.apply _ }
 
   def skOp = rule { eq | gte | lte | gt | lt | beginsWith | between }
   def pkCondition = rule { path ~ owsp ~ eq ~> PartitionKeyCondition.apply _ }
@@ -56,5 +60,5 @@ class QueryParser(val input: ParserInput) extends Parser {
   def filterCondition = rule { path ~ owsp ~ filterOp ~> FilterCondition.apply _ }
   def filter = rule { "FILTER" ~ wsp ~ oneOrMore(filterCondition).separatedBy(wsp ~ "AND" ~ wsp) ~> (xs => Condition.all(xs.toList)) }
 
-  def query: Rule1[Query] = rule { owsp ~ select ~ wsp ~ from ~ wsp ~ where ~ optional(wsp ~ filter) ~ owsp ~> Query.apply _ }
+  def query = rule { owsp ~ select ~ wsp ~ from ~ wsp ~ where ~ optional(wsp ~ filter) ~ owsp ~> Query.apply _ }
 }

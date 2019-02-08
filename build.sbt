@@ -58,5 +58,6 @@ libraryDependencies ++= Seq(
   "org.parboiled" %% "parboiled" % "2.1.5",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
   "org.typelevel" %% "cats-core" % "1.5.0",
-  "software.amazon.awssdk" % "dynamodb" % "2.4.1"
+  "software.amazon.awssdk" % "dynamodb" % "2.4.1",
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )

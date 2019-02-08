@@ -6,7 +6,7 @@ sealed trait Operand
 
 sealed trait Segment
 case class Name(get: String) extends Segment
-case class Elem(index: Int) extends Segment
+case class Index(get: Int) extends Segment
 case class Path(name: Name, segments: List[Segment] = List.empty) extends Operand
 
 sealed trait Value extends Operand
