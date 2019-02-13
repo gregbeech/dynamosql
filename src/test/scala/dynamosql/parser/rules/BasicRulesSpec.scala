@@ -1,6 +1,8 @@
-package dynamosql.parser
+package dynamosql.parser.rules
 
-class WhitespaceRulesSpec extends ParserSpec {
+import dynamosql.parser.ParserSpec
+
+class BasicRulesSpec extends ParserSpec {
 
   "wsp" must {
     "consume whitespace including newlines" in {

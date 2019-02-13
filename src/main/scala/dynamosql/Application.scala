@@ -27,11 +27,11 @@ object Application {
     val since = Instant.now.minus(14, ChronoUnit.DAYS)
     val limit = 10
     val query = query"""
-      SELECT *
-      FROM identity.test.Entities
-      WHERE Id = $id AND SK >= $sk
-      FILTER CreatedAt > $since
-      LIMIT $limit
+      select *
+      from identity.test.Entities
+      where Id = $id and SK >= $sk
+      filter CreatedAt > $since
+      limit $limit
     """
 
     val request = query.toRequest

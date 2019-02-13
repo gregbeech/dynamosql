@@ -19,11 +19,11 @@ object Application {
     val since = Instant.now.minus(14, ChronoUnit.DAYS)
     val limit = 10
     val query = query"""
-      SELECT *
-      FROM Entities
-      WHERE PK = $id AND SK >= $version
-      FILTER UpdatedAt > $since
-      LIMIT $limit
+      select *
+      from Entities
+      where PK = $id and SK >= $version
+      filter UpdatedAt > $since
+      limit $limit
     """
 
     val client = DynamoDbAsyncClient.builder.endpointOverride(new URI("http://localhost:8000")).build

@@ -20,4 +20,8 @@ object Value {
   case class N(get: String) extends OrderedValue
   case class S(get: String) extends LinearValue
   case class SS(get: Set[String]) extends Value
+
+  object S {
+    def unescape(s: String): S = S(s.replace("\\'", "'").replace("\\\\", "\\"))
+  }
 }
